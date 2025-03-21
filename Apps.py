@@ -1,4 +1,3 @@
-pip install easyocr
 streamlit
 numpy
 pillow

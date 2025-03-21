@@ -1,58 +1,90 @@
 import streamlit as st
 import numpy as np
 
-# Funktion zur Berechnung der Lagebeziehung mit detailliertem Rechenweg
+# Funktion zur Berechnung der Lagebeziehung mit Rechenweg und vollständiger Gauß-Elimination
+def gauss_elimination(A, b):
+    """Gauß-Elimination zur Lösung des Systems Ax = b"""
+    n = len(b)
+    M = np.hstack([A, b.reshape(-1, 1)])  # Augmentierte Matrix
+    rechenweg = ""
+
+    # Vorwärtssubstitution (Elimination)
+    for i in range(n):
+        # Pivotisierung: Zeilen tauschen, falls notwendig
+        if M[i, i] == 0:
+            for j in range(i+1, n):
+                if M[j, i] != 0:
+                    M[[i, j]] = M[[j, i]]
+                    rechenweg += f"  Tausche Zeile {i+1} mit Zeile {j+1}, da der Pivot-Element von Zeile {i+1} null ist.\n"
+                    break
+        # Normiere die Zeile
+        M[i] = M[i] / M[i, i]
+        rechenweg += f"  Normiere Zeile {i+1} (Teile durch {M[i, i]}): {M[i]}\n"
+        # Elimiere die Spalten unterhalb der Diagonalen
+        for j in range(i + 1, n):
+            M[j] -= M[j, i] * M[i]
+            rechenweg += f"  Eliminiere Eintrag in Zeile {j+1}, Spalte {i+1}: {M[j]}\n"
+    
+    # Rückwärtssubstitution
+    x = np.zeros(n)
+    for i in range(n - 1, -1, -1):
+        x[i] = M[i, -1] - np.dot(M[i, :-1], x)
+        rechenweg += f"  Bestimme x_{i+1} = {M[i, -1]} - {np.dot(M[i, :-1], x)} = {x[i]}\n"
+    return x, rechenweg
+
 def check_lagebeziehung(a1, b1, a2, b2):
     a1, b1, a2, b2 = np.array(a1), np.array(b1), np.array(a2), np.array(b2)
-    rechenweg = "**Detaillierter Rechenweg:**\n\n"
+    rechenweg = ""
 
     # Schritt 1: Die Gleichungen der beiden Geraden
-    rechenweg += f"1️⃣ **Gleichungen der beiden Geraden:**\n"
+    rechenweg += "1️⃣ **Gleichungen der beiden Geraden:**\n"
     rechenweg += f"   Gerade 1: r₁(t) = {a1} + t * {b1} \n"
     rechenweg += f"   Gerade 2: r₂(s) = {a2} + s * {b2} \n\n"
 
     # Schritt 2: Überprüfung auf Parallelität
-    rechenweg += "2️⃣ **Überprüfung, ob die Geraden parallel sind:**\n"
-    rechenweg += "Die Richtungsvektoren der beiden Geraden müssen **linear abhängig** sein, um parallel zu sein.\n"
-    
-    # Berechnung der Matrixränge zur Überprüfung auf Linearität
+    rechenweg += "2️⃣ **Überprüfung auf Parallelität:**\n"
     if np.linalg.matrix_rank(np.column_stack((b1, b2))) == 1:
-        rechenweg += "   Da die Richtungsvektoren **linear abhängig** sind, sind die Geraden **parallel**.\n"
+        rechenweg += "   Die Richtungsvektoren b₁ und b₂ sind linear abhängig.\n"
+        rechenweg += "   Die Geraden sind **parallel**.\n"
         
-        # Überprüfung, ob die Geraden identisch sind (wenn der Stützvektor auf der anderen Gerade liegt)
-        rechenweg += "   Nun überprüfen wir, ob die Geraden identisch sind, indem wir den Vektor a₂ - a₁ auf Parallelität zu b₁ testen.\n"
         if np.linalg.matrix_rank(np.column_stack((b1, a2 - a1))) == 1:
-            rechenweg += "   Da der Vektor a₂ - a₁ ebenfalls linear abhängig von b₁ ist, sind die Geraden **identisch**.\n"
+            rechenweg += "   Die Geraden sind **identisch**.\n"
             return "Die Geraden sind **identisch**.", rechenweg
         else:
             rechenweg += "   Die Geraden sind **parallel**, aber nicht identisch.\n"
             return "Die Geraden sind **parallel**, aber nicht identisch.", rechenweg
 
-    rechenweg += "   Da die Richtungsvektoren **linear unabhängig** sind, sind die Geraden **nicht parallel**.\n\n"
+    rechenweg += "   Die Richtungsvektoren sind **linear unabhängig**.\n"
+    rechenweg += "   Die Geraden sind **nicht parallel**.\n\n"
 
     # Schritt 3: Überprüfung auf Schnittpunkt
-    rechenweg += "3️⃣ **Überprüfung, ob die Geraden sich schneiden:**\n"
-    rechenweg += "Um zu überprüfen, ob sich die Geraden schneiden, stellen wir die Gleichung auf:\n"
-    rechenweg += "   r₁(t) = r₂(s)\n"
-    rechenweg += "   a₁ + t * b₁ = a₂ + s * b₂\n"
-    rechenweg += "Umgestellt ergibt sich das Gleichungssystem:\n"
-    rechenweg += f"   {b1} * t - {b2} * s = {a2} - {a1}\n"
-    
-    A = np.column_stack((b1, -b2))
+    rechenweg += "3️⃣ **Überprüfung auf Schnittpunkt:**\n"
+    rechenweg += "   r₁(t) = r₂(s) → a₁ + t * b₁ = a₂ + s * b₂\n"
+    rechenweg += "   → t * b₁ - s * b₂ = a₂ - a₁\n"
+    rechenweg += "   Dies ergibt das lineare Gleichungssystem:\n"
 
+    A = np.column_stack((b1, -b2))
+    b = a2 - a1
+
+    rechenweg += f"   Die augmentierte Matrix lautet:\n"
+    rechenweg += f"   [ [{b1[0]}, {-b2[0]}], \n"
+    rechenweg += f"     [{b1[1]}, {-b2[1]}], \n"
+    rechenweg += f"     [{b1[2]}, {-b2[2]}] ]\n"
+    rechenweg += f"   Rechter Vektor: [{b[0]}, {b[1]}, {b[2]}]\n\n"
+
+    # Lösung mit Gauß-Verfahren
     try:
-        # Lösen des linearen Gleichungssystems
-        lambdas = np.linalg.solve(A, a2 - a1)
+        lambdas, step_rechenweg = gauss_elimination(A, b)
         schnittpunkt = a1 + lambdas[0] * b1
-        
-        rechenweg += "   Wir lösen das lineare Gleichungssystem:\n"
+
+        rechenweg += step_rechenweg  # Detaillierte Schritte der Gauß-Elimination
         rechenweg += f"   λ₁ = {lambdas[0]} \n   λ₂ = {lambdas[1]}\n"
         rechenweg += f"   Der Schnittpunkt der beiden Geraden ist: {schnittpunkt}\n"
-        rechenweg += "Die Geraden schneiden sich, und der Schnittpunkt ist somit der Punkt " + str(schnittpunkt) + ".\n"
+        
         return f"Die Geraden schneiden sich in {schnittpunkt}.", rechenweg
 
-    except np.linalg.LinAlgError:
-        rechenweg += "   Das lineare Gleichungssystem hat keine Lösung. Die Geraden sind **windschief**.\n"
+    except Exception as e:
+        rechenweg += "   Es gibt keinen Schnittpunkt. Die Geraden sind **windschief**.\n"
         return "Die Geraden sind **windschief**.", rechenweg
 
 # Streamlit UI

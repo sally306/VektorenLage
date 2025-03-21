@@ -57,31 +57,56 @@ def vector_subtract(v1, v2):
 def vector_add_scalar(v, scalar, direction):
     return [v[0] + scalar * direction[0], v[1] + scalar * direction[1], v[2] + scalar * direction[2]]
 
-# Funktion für 2D-Visualisierung (xy-Projektion)
-def draw_lines_2d(g1, r1, g2, r2, schnittpunkt=None):
+# Funktion für Koordinatensystem (xy-Projektion) mit Vektoren
+def draw_coordinate_system(g1, r1, g2, r2, schnittpunkt=None):
     width, height = 20, 10
     grid = [[' ' for _ in range(width)] for _ in range(height)]
     scale = 2
     
+    # Koordinatenachsen zeichnen
+    center_x, center_y = width // 2, height // 2
+    for x in range(width):
+        grid[center_y][x] = '-'  # x-Achse
+    for y in range(height):
+        grid[y][center_x] = '|'  # y-Achse
+    grid[center_y][center_x] = '+'  # Ursprung
+    
+    # Gerade 1: Stützvektor und Gerade
+    g1_x = int(g1[0]) // scale + center_x
+    g1_y = int(g1[1]) // scale + center_y
+    if 0 <= g1_x < width and 0 <= g1_y < height:
+        grid[g1_y][g1_x] = 'G'  # Stützvektor g1
+    
+    # Gerade 1 zeichnen
     for t in range(-5, 6):
-        x = int(g1[0] + t * r1[0]) // scale + width // 2
-        y = int(g1[1] + t * r1[1]) // scale + height // 2
-        if 0 <= x < width and 0 <= y < height:
-            grid[y][x] = '-'
+        x = int(g1[0] + t * r1[0]) // scale + center_x
+        y = int(g1[1] + t * r1[1]) // scale + center_y
+        if 0 <= x < width and 0 <= y < height and grid[y][x] not in ['+', 'G']:
+            grid[y][x] = '1'
     
+    # Gerade 2: Stützvektor und Gerade
+    g2_x = int(g2[0]) // scale + center_x
+    g2_y = int(g2[1]) // scale + center_y
+    if 0 <= g2_x < width and 0 <= g2_y < height:
+        grid[g2_y][g2_x] = 'H'  # Stützvektor g2
+    
+    # Gerade 2 zeichnen
     for s in range(-5, 6):
-        x = int(g2[0] + s * r2[0]) // scale + width // 2
-        y = int(g2[1] + s * r2[1]) // scale + height // 2
-        if 0 <= x < width and 0 <= y < height:
-            grid[y][x] = '|'
+        x = int(g2[0] + s * r2[0]) // scale + center_x
+        y = int(g2[1] + s * r2[1]) // scale + center_y
+        if 0 <= x < width and 0 <= y < height and grid[y][x] not in ['+', 'H']:
+            grid[y][x] = '2'
     
+    # Schnittpunkt markieren
     if schnittpunkt:
-        x = int(schnittpunkt[0]) // scale + width // 2
-        y = int(schnittpunkt[1]) // scale + height // 2
+        x = int(schnittpunkt[0]) // scale + center_x
+        y = int(schnittpunkt[1]) // scale + center_y
         if 0 <= x < width and 0 <= y < height:
             grid[y][x] = 'X'
     
-    return "\n".join("".join(row) for row in grid)
+    # Grid als String formatieren
+    drawing = "\n".join("".join(row) for row in grid)
+    return drawing
 
 # Berechnungen durchführen
 if st.button("Lagebeziehung berechnen"):
@@ -128,10 +153,49 @@ if st.button("Lagebeziehung berechnen"):
                 break
         if parallel:
             st.write(f"Die Richtungsvektoren sind Vielfache (λ = {first_lambda}), also sind die Geraden parallel.")
-            st.write("Da die Geraden parallel sind, können sie keinen Schnittpunkt haben.")
-            st.write("Wir prüfen nicht weiter, da parallele Geraden entweder identisch oder echt parallel sind.")
-            st.subheader("Visualisierung (xy-Projektion)")
-            drawing = draw_lines_2d(g1, r1, g2, r2)
+            
+            # Prüfung, ob Stützpunkt g2 auf Gerade 1 liegt
+            st.subheader("Schritt 2.1: Prüfung, ob Stützpunkt g2 auf Gerade 1 liegt")
+            st.write("Da die Geraden parallel sind, prüfen wir, ob sie identisch sind.")
+            st.write("Dazu prüfen wir, ob der Stützvektor g2 auf Gerade 1 liegt.")
+            st.write("Das bedeutet, es muss ein t existieren, sodass g2 = g1 + t * r1.")
+            diff = vector_subtract(g2, g1)
+            st.write(f"g2 - g1 = {g2} - {g1}")
+            st.write(f"        = [{g2[0]} - ({g1[0]}), {g2[1]} - ({g1[1]}), {g2[2]} - ({g1[2]})]")
+            st.write(f"        = {diff}")
+            
+            st.write("Nun prüfen wir, ob g2 - g1 ein Vielfaches von r1 ist:")
+            t_values = []
+            for i in range(3):
+                if r1[i] != 0:
+                    t_val = diff[i] / r1[i]
+                    t_values.append(t_val)
+                    st.write(f"Komponente {i+1}: {diff[i]} / {r1[i]} = {t_val}")
+                elif diff[i] == 0:
+                    st.write(f"Komponente {i+1}: Beide 0, passt.")
+                else:
+                    st.write(f"Komponente {i+1}: r1[{i}] = 0, diff[{i}] = {diff[i]} ≠ 0 → kein Vielfaches!")
+                    t_values = []
+                    break
+            
+            if t_values:
+                first_t = t_values[0]
+                identical = True
+                for t_val in t_values[1:]:
+                    if abs(t_val - first_t) > 1e-10:
+                        identical = False
+                        st.write(f"t-Werte unterschiedlich: {t_values} → Die Geraden sind nicht identisch!")
+                        break
+                if identical:
+                    st.write(f"Alle t-Werte sind gleich (t = {first_t}), die Geraden sind identisch!")
+                else:
+                    st.write("Die Geraden sind echt parallel (kein Schnittpunkt).")
+            else:
+                st.write("Die Geraden sind echt parallel (kein Schnittpunkt).")
+            
+            st.subheader("Koordinatensystem (xy-Projektion)")
+            st.write("Legende: G = g1, H = g2, 1 = Gerade 1, 2 = Gerade 2")
+            drawing = draw_coordinate_system(g1, r1, g2, r2)
             st.code(drawing)
     else:
         st.write("Die Richtungsvektoren sind keine Vielfachen, also sind die Geraden nicht parallel.")
@@ -167,16 +231,30 @@ if st.button("Lagebeziehung berechnen"):
             st.write(f"I.   {t_expr}")
         else:
             st.write("Koeffizient von t in I ist 0, wir lösen direkt nach s:")
-            s = c1 / b1 if b1 != 0 else None
-            st.write(f"s = {c1} / ({b1}) = {s}")
-            t = None
+            if b1 != 0:
+                s = c1 / b1
+                st.write(f"s = {c1} / ({b1}) = {s}")
+                st.write("Setze s in II ein:")
+                if a2 != 0:
+                    t = (c2 - b2 * s) / a2
+                    st.write(f"II.  {a2} * t + ({b2}) * {s} = {c2}")
+                    st.write(f"     {a2} * t = {c2} - ({b2}) * {s}")
+                    st.write(f"     t = ({c2} - ({b2}) * {s}) / {a2} = {t}")
+                else:
+                    st.write("Koeffizient von t in II ist 0, keine Lösung möglich.")
+                    t = None
+                    s = None
+            else:
+                st.write("Keine Lösung möglich, da Koeffizient von s in I auch 0 ist.")
+                t = None
+                s = None
         
-        if t is None and s is not None:
-            st.write("Setze s in II ein:")
-            t = (c2 - b2 * s) / a2 if a2 != 0 else None
-            st.write(f"II.  {a2} * t + ({b2}) * {s} = {c2}")
-            st.write(f"     {a2} * t = {c2} - ({b2}) * {s}")
-            st.write(f"     t = ({c2} - ({b2}) * {s}) / {a2} = {t}")
+        if t is None or s is None:
+            st.write("Keine Lösung für t und s gefunden → Die Geraden sind windschief.")
+            st.subheader("Koordinatensystem (xy-Projektion)")
+            st.write("Legende: G = g1, H = g2, 1 = Gerade 1, 2 = Gerade 2")
+            drawing = draw_coordinate_system(g1, r1, g2, r2)
+            st.code(drawing)
         else:
             st.write("Setze t in II ein:")
             st.write(f"II.  {a2} * ({c1} - ({b1}) * s) / {a1} + ({b2}) * s = {c2}")
@@ -198,36 +276,39 @@ if st.button("Lagebeziehung berechnen"):
                 st.write("Setze s in I ein, um t zu berechnen:")
                 t = (c1 - b1 * s) / a1 if a1 != 0 else None
                 st.write(f"t = ({c1} - ({b1}) * {s}) / {a1} = {t}")
-        
-        # Konsistenzprüfung
-        if t is not None and s is not None:
-            st.subheader("Schritt 3.1: Konsistenzprüfung mit Gleichung III")
-            st.write("Setze t und s in die dritte Gleichung ein:")
-            left = g1[2] + t * r1[2]
-            right = g2[2] + s * r2[2]
-            st.write(f"III. {g1[2]} + t * {r1[2]} = {g2[2]} + s * {r2[2]}")
-            st.write(f"     {g1[2]} + {t} * {r1[2]} = {g2[2]} + {s} * {r2[2]}")
-            st.write(f"     {left} = {right}")
             
-            if abs(left - right) < 1e-10:
-                st.write("Die dritte Gleichung ist erfüllt → Schnittpunkt existiert!")
-                schnittpunkt = vector_add_scalar(g1, t, r1)
-                st.write("Berechne den Schnittpunkt mit t in Gerade 1:")
-                st.write(f"x = {g1[0]} + {t} * {r1[0]} = {schnittpunkt[0]}")
-                st.write(f"y = {g1[1]} + {t} * {r1[1]} = {schnittpunkt[1]}")
-                st.write(f"z = {g1[2]} + {t} * {r1[2]} = {schnittpunkt[2]}")
-                st.write(f"Schnittpunkt: {schnittpunkt}")
-                st.subheader("Visualisierung (xy-Projektion)")
-                drawing = draw_lines_2d(g1, r1, g2, r2, schnittpunkt)
-                st.code(drawing)
+            # Konsistenzprüfung
+            if t is not None and s is not None:
+                st.subheader("Schritt 3.1: Konsistenzprüfung mit Gleichung III")
+                st.write("Setze t und s in die dritte Gleichung ein:")
+                left = g1[2] + t * r1[2]
+                right = g2[2] + s * r2[2]
+                st.write(f"III. {g1[2]} + t * {r1[2]} = {g2[2]} + s * {r2[2]}")
+                st.write(f"     {g1[2]} + {t} * {r1[2]} = {g2[2]} + {s} * {r2[2]}")
+                st.write(f"     {left} = {right}")
+                
+                if abs(left - right) < 1e-10:
+                    st.write("Die dritte Gleichung ist erfüllt → Schnittpunkt existiert!")
+                    schnittpunkt = vector_add_scalar(g1, t, r1)
+                    st.write("Berechne den Schnittpunkt mit t in Gerade 1:")
+                    st.write(f"x = {g1[0]} + {t} * {r1[0]} = {schnittpunkt[0]}")
+                    st.write(f"y = {g1[1]} + {t} * {r1[1]} = {schnittpunkt[1]}")
+                    st.write(f"z = {g1[2]} + {t} * {r1[2]} = {schnittpunkt[2]}")
+                    st.write(f"Schnittpunkt: {schnittpunkt}")
+                    st.subheader("Koordinatensystem (xy-Projektion)")
+                    st.write("Legende: G = g1, H = g2, 1 = Gerade 1, 2 = Gerade 2, X = Schnittpunkt")
+                    drawing = draw_coordinate_system(g1, r1, g2, r2, schnittpunkt)
+                    st.code(drawing)
+                else:
+                    st.write("Die dritte Gleichung ist nicht erfüllt → Die Geraden sind windschief.")
+                    st.write(f"Ergebnis: Keine Lösung, die Geraden sind windschief.")
+                    st.subheader("Koordinatensystem (xy-Projektion)")
+                    st.write("Legende: G = g1, H = g2, 1 = Gerade 1, 2 = Gerade 2")
+                    drawing = draw_coordinate_system(g1, r1, g2, r2)
+                    st.code(drawing)
             else:
-                st.write("Die dritte Gleichung ist nicht erfüllt → Die Geraden sind windschief.")
-                st.write(f"Ergebnis: Keine Lösung, die Geraden sind windschief.")
-                st.subheader("Visualisierung (xy-Projektion)")
-                drawing = draw_lines_2d(g1, r1, g2, r2)
+                st.write("Keine Lösung für t und s gefunden → Die Geraden sind windschief.")
+                st.subheader("Koordinatensystem (xy-Projektion)")
+                st.write("Legende: G = g1, H = g2, 1 = Gerade 1, 2 = Gerade 2")
+                drawing = draw_coordinate_system(g1, r1, g2, r2)
                 st.code(drawing)
-        else:
-            st.write("Keine Lösung für t und s gefunden → Die Geraden sind windschief.")
-            st.subheader("Visualisierung (xy-Projektion)")
-            drawing = draw_lines_2d(g1, r1, g2, r2)
-            st.code(drawing)

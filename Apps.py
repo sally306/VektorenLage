@@ -226,4 +226,7 @@ if st.button("Lagebeziehung berechnen"):
         st.write(f"II.  {a2} * t + ({b2}) * s = {c2}")
         
         # Schrittweise Lösung wie im Bild
-        st.write("Nach t auflösen in Gleich")
+        st.write("Nach t auflösen in Gleichung I:")
+        st.write(f"t = ({c1} - {b1} * s) / {a1}")
+
+        # Setze

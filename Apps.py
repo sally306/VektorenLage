@@ -25,6 +25,12 @@ st.title("Lagebeziehung von Geraden + OCR-Texterkennung")
 # Hochladen eines Bildes
 uploaded_file = st.file_uploader("Lade ein Bild mit Vektoren hoch", type=["png", "jpg", "jpeg"])
 
+git init
+git add .
+git commit -m "Erster Commit"
+git branch -M main
+git remote add origin https://github.com/dein-benutzername/dein-repo.git
+git push -u origin main
 git add Apps.py
 git commit -m "EasyOCR hinzugefügt"
 git push

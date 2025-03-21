@@ -7,40 +7,45 @@ def check_lagebeziehung(a1, b1, a2, b2):
     rechenweg = "**Detaillierter Rechenweg:**\n\n"
 
     # Schritt 1: Die Gleichungen der beiden Geraden
-    rechenweg += f"1️⃣ Die beiden Geraden lassen sich wie folgt beschreiben:\n"
-    rechenweg += f"   Gerade 1: r₁(t) = {a1} + t * {b1}\n"
-    rechenweg += f"   Gerade 2: r₂(s) = {a2} + s * {b2}\n\n"
+    rechenweg += f"1️⃣ **Gleichungen der beiden Geraden:**\n"
+    rechenweg += f"   Gerade 1: r₁(t) = {a1} + t * {b1} \n"
+    rechenweg += f"   Gerade 2: r₂(s) = {a2} + s * {b2} \n\n"
 
     # Schritt 2: Überprüfung auf Parallelität
-    rechenweg += "2️⃣ Überprüfung, ob die Geraden parallel sind:\n"
-    rechenweg += "Die Richtungsvektoren müssen **linear abhängig** sein, damit die Geraden parallel sind.\n"
+    rechenweg += "2️⃣ **Überprüfung, ob die Geraden parallel sind:**\n"
+    rechenweg += "Die Richtungsvektoren der beiden Geraden müssen **linear abhängig** sein, um parallel zu sein.\n"
     
+    # Berechnung der Matrixränge zur Überprüfung auf Linearität
     if np.linalg.matrix_rank(np.column_stack((b1, b2))) == 1:
         rechenweg += "   Da die Richtungsvektoren **linear abhängig** sind, sind die Geraden **parallel**.\n"
         
-        # Überprüfung, ob die Geraden identisch sind
+        # Überprüfung, ob die Geraden identisch sind (wenn der Stützvektor auf der anderen Gerade liegt)
+        rechenweg += "   Nun überprüfen wir, ob die Geraden identisch sind, indem wir den Vektor a₂ - a₁ auf Parallelität zu b₁ testen.\n"
         if np.linalg.matrix_rank(np.column_stack((b1, a2 - a1))) == 1:
+            rechenweg += "   Da der Vektor a₂ - a₁ ebenfalls linear abhängig von b₁ ist, sind die Geraden **identisch**.\n"
             return "Die Geraden sind **identisch**.", rechenweg
-        
-        return "Die Geraden sind **parallel**, aber nicht identisch.", rechenweg
+        else:
+            rechenweg += "   Die Geraden sind **parallel**, aber nicht identisch.\n"
+            return "Die Geraden sind **parallel**, aber nicht identisch.", rechenweg
 
     rechenweg += "   Da die Richtungsvektoren **linear unabhängig** sind, sind die Geraden **nicht parallel**.\n\n"
 
     # Schritt 3: Überprüfung auf Schnittpunkt
-    rechenweg += "3️⃣ Überprüfung, ob die Geraden sich schneiden:\n"
-    rechenweg += "Um zu überprüfen, ob sich die Geraden schneiden, lösen wir das lineare Gleichungssystem:\n"
-    rechenweg += "   a1 + t * b1 = a2 + s * b2\n"
-    rechenweg += "   Umgestellt ergibt sich das System:\n"
+    rechenweg += "3️⃣ **Überprüfung, ob die Geraden sich schneiden:**\n"
+    rechenweg += "Um zu überprüfen, ob sich die Geraden schneiden, stellen wir die Gleichung auf:\n"
+    rechenweg += "   r₁(t) = r₂(s)\n"
+    rechenweg += "   a₁ + t * b₁ = a₂ + s * b₂\n"
+    rechenweg += "Umgestellt ergibt sich das Gleichungssystem:\n"
     rechenweg += f"   {b1} * t - {b2} * s = {a2} - {a1}\n"
     
     A = np.column_stack((b1, -b2))
-    
+
     try:
-        # Lösen des linearen Gleichungssystems für den Schnittpunkt
+        # Lösen des linearen Gleichungssystems
         lambdas = np.linalg.solve(A, a2 - a1)
         schnittpunkt = a1 + lambdas[0] * b1
         
-        rechenweg += "   Wir lösen das lineare Gleichungssystem und erhalten:\n"
+        rechenweg += "   Wir lösen das lineare Gleichungssystem:\n"
         rechenweg += f"   λ₁ = {lambdas[0]} \n   λ₂ = {lambdas[1]}\n"
         rechenweg += f"   Der Schnittpunkt der beiden Geraden ist: {schnittpunkt}\n"
         rechenweg += "Die Geraden schneiden sich, und der Schnittpunkt ist somit der Punkt " + str(schnittpunkt) + ".\n"

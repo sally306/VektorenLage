@@ -1,8 +1,43 @@
+pip install easyocr
+streamlit
+numpy
+pillow
+easyocr
 import streamlit as st
 import numpy as np
 import pytesseract
 from PIL import Image
 
+import streamlit as st
+import numpy as np
+import easyocr
+from PIL import Image
+
+# EasyOCR-Reader initialisieren (Deutsch & Englisch)
+reader = easyocr.Reader(['de', 'en'])
+
+def extract_text_from_image(image):
+    """Texterkennung mit EasyOCR"""
+    text = reader.readtext(np.array(image), detail=0)
+    return " ".join(text)
+
+st.title("Lagebeziehung von Geraden + OCR-Texterkennung")
+
+# Hochladen eines Bildes
+uploaded_file = st.file_uploader("Lade ein Bild mit Vektoren hoch", type=["png", "jpg", "jpeg"])
+
+git add app.py
+git commit -m "EasyOCR hinzugefügt"
+git push
+
+if uploaded_file is not None:
+    image = Image.open(uploaded_file)
+    st.image(image, caption="Hochgeladenes Bild", use_column_width=True)
+
+    # OCR ausführen
+    text = extract_text_from_image(image)
+    st.write("Erkannter Text:", text)
+    
 # Funktion zur Berechnung der Lagebeziehung mit Rechenweg
 def check_lagebeziehung(a1, b1, a2, b2):
     a1, b1, a2, b2 = np.array(a1), np.array(b1), np.array(a2), np.array(b2)

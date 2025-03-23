@@ -41,7 +41,7 @@ with col4:
     st.subheader("Richtungsvektor r2")
     rx2 = st.number_input("rx2", value=1.0, step=1.0, key="rx2")
     ry2 = st.number_input("ry2", value=2.0, step=1.0, key="ry2")
-    rz2 = st.number_input("rz2", value=1.0, step=1.0, key="rz2")
+    rz2 = st.number_input("rz2", value=0.0, step=1.0, key="rz2")
 
 # Vektoren als Listen definieren
 g1 = [x1, y1, z1]
@@ -340,7 +340,7 @@ if st.button("Lagebeziehung berechnen"):
                     if (abs(x - x2_check) < 1e-10 and 
                         abs(y - y2_check) < 1e-10 and 
                         abs(z - z2_check) < 1e-10):
-                        st.write("Die Schnittpunkte stimmen überein. Die Geraden schneiden sich Windschief im Punkt:")
+                        st.write("Die Schnittpunkte stimmen überein. Die Geraden schneiden sich im Punkt:")
                         st.write(f"Schnittpunkt: {schnittpunkt}")
                     else:
                         st.write("Die Schnittpunkte stimmen nicht überein. Das System ist nicht korrekt gelöst.")

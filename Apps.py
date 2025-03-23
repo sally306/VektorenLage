@@ -57,21 +57,25 @@ def vector_subtract(v1, v2):
 def vector_add_scalar(v, scalar, direction):
     return [v[0] + scalar * direction[0], v[1] + scalar * direction[1], v[2] + scalar * direction[2]]
 
-# Funktion für 3D-Koordinatensystem (textbasiert)
+# Funktion für 3D-Koordinatensystem (textbasiert, ähnlich dem Beispielbild)
 def draw_3d_coordinate_system(g1, r1, g2, r2, schnittpunkt=None):
-    width, height, depth = 20, 10, 10  # x, y, z Dimensionen
-    grid = [[[' ' for _ in range(width)] for _ in range(height)] for _ in range(depth)]
-    scale = 2
+    width, height, depth = 12, 12, 12  # x, y, z Dimensionen
+    grid = [[['.' for _ in range(width)] for _ in range(height)] for _ in range(depth)]
+    scale = 1  # Skalierung für die Darstellung
     
-    # Koordinatenachsen zeichnen (vereinfacht)
+    # Koordinatenachsen zeichnen
     center_x, center_y, center_z = width // 2, height // 2, depth // 2
+    
+    # x-Achse
     for x in range(width):
-        grid[center_z][center_y][x] = '-'  # x-Achse
+        grid[center_z][center_y][x] = '-'
+    # y-Achse
     for y in range(height):
-        grid[center_z][y][center_x] = '|'  # y-Achse
+        grid[center_z][y][center_x] = '|'
+    # z-Achse
     for z in range(depth):
-        if grid[z][center_y][center_x] == ' ':
-            grid[z][center_y][center_x] = ':'  # z-Achse
+        if grid[z][center_y][center_x] == '.':
+            grid[z][center_y][center_x] = ':'
     grid[center_z][center_y][center_x] = '+'  # Ursprung
     
     # Gerade 1: Stützvektor und Gerade
@@ -116,7 +120,12 @@ def draw_3d_coordinate_system(g1, r1, g2, r2, schnittpunkt=None):
     drawing = ""
     for z in range(depth):
         drawing += f"\nz-Ebene {z - center_z}:\n"
-        drawing += "\n".join("".join(row) for row in grid[z]) + "\n"
+        # Achsenbeschriftungen hinzufügen
+        drawing += "  y\n"
+        for y in range(height):
+            row = "".join(grid[z][y])
+            drawing += f"{height - 1 - y:2d} {row}\n"
+        drawing += "   " + "".join([f"{i - center_x:2d}" for i in range(width)]) + " x\n"
     return drawing
 
 # Berechnungen durchführen
@@ -236,7 +245,7 @@ if st.button("Lagebeziehung berechnen"):
         st.write(f"I.   {a1} * t + ({b1}) * s = {c1}")
         st.write(f"II.  {a2} * t + ({b2}) * s = {c2}")
         
-        # Schrittweise Lösung wie im Bild
+        # Schrittweise Lösung
         t = None
         s = None
         
@@ -285,8 +294,8 @@ if st.button("Lagebeziehung berechnen"):
                 s = None
         
         # Konsistenzprüfung
+        st.subheader("Schritt 3.1: Konsistenzprüfung mit Gleichung III")
         if t is not None and s is not None:
-            st.subheader("Schritt 3.1: Konsistenzprüfung mit Gleichung III")
             st.write("Setze t und s in die dritte Gleichung ein:")
             left = g1[2] + t * r1[2]
             right = g2[2] + s * r2[2]

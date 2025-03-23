@@ -24,8 +24,8 @@ with col1:
 with col2:
     st.subheader("Richtungsvektor r1")
     rx1 = st.number_input("rx1", value=1.0, step=1.0, key="rx1")
-    ry1 = st.number_input("ry1", value=0.0, step=1.0, key="ry1")
-    rz1 = st.number_input("rz1", value=0.0, step=1.0, key="rz1")
+    ry1 = st.number_input("ry1", value=1.0, step=1.0, key="ry1")
+    rz1 = st.number_input("rz1", value=1.0, step=1.0, key="rz1")
 
 # Eingabefelder für die zweite Gerade
 st.header("Gerade 2")
@@ -39,9 +39,9 @@ with col3:
 
 with col4:
     st.subheader("Richtungsvektor r2")
-    rx2 = st.number_input("rx2", value=0.0, step=1.0, key="rx2")
+    rx2 = st.number_input("rx2", value=1.0, step=1.0, key="rx2")
     ry2 = st.number_input("ry2", value=1.0, step=1.0, key="ry2")
-    rz2 = st.number_input("rz2", value=0.0, step=1.0, key="rz2")
+    rz2 = st.number_input("rz2", value=1.0, step=1.0, key="rz2")
 
 # Vektoren als Listen definieren
 g1 = [x1, y1, z1]
@@ -57,75 +57,73 @@ def vector_subtract(v1, v2):
 def vector_add_scalar(v, scalar, direction):
     return [v[0] + scalar * direction[0], v[1] + scalar * direction[1], v[2] + scalar * direction[2]]
 
-# Funktion für 3D-Koordinatensystem (textbasiert, ähnlich dem Beispielbild)
+# Funktion für 3D-Koordinatensystem (textbasiert, 2D-Projektion)
 def draw_3d_coordinate_system(g1, r1, g2, r2, schnittpunkt=None):
-    width, height, depth = 12, 12, 12  # x, y, z Dimensionen
-    grid = [[['.' for _ in range(width)] for _ in range(height)] for _ in range(depth)]
-    scale = 1  # Skalierung für die Darstellung
+    width, height = 20, 20  # Größe der 2D-Projektion
+    grid = [['.' for _ in range(width)] for _ in range(height)]
+    scale = 2  # Skalierung für die Darstellung
     
-    # Koordinatenachsen zeichnen
-    center_x, center_y, center_z = width // 2, height // 2, depth // 2
+    # Koordinatenachsen zeichnen (perspektivische Projektion)
+    center_x, center_y = width // 2, height // 2
     
     # x-Achse
     for x in range(width):
-        grid[center_z][center_y][x] = '-'
+        grid[center_y][x] = '-'
     # y-Achse
     for y in range(height):
-        grid[center_z][y][center_x] = '|'
-    # z-Achse
-    for z in range(depth):
-        if grid[z][center_y][center_x] == '.':
-            grid[z][center_y][center_x] = ':'
-    grid[center_z][center_y][center_x] = '+'  # Ursprung
+        grid[y][center_x] = '|'
+    # z-Achse (perspektivisch: diagonal von unten links nach oben rechts)
+    for i in range(min(width, height)):
+        if 0 <= center_y - i < height and 0 <= center_x + i < width:
+            grid[center_y - i][center_x + i] = '/'
+    grid[center_y][center_x] = '+'  # Ursprung
     
-    # Gerade 1: Stützvektor und Gerade
-    g1_x = int(g1[0]) // scale + center_x
-    g1_y = int(g1[1]) // scale + center_y
-    g1_z = int(g1[2]) // scale + center_z
-    if 0 <= g1_x < width and 0 <= g1_y < height and 0 <= g1_z < depth:
-        grid[g1_z][g1_y][g1_x] = 'G'  # Stützvektor g1
+    # Gerade 1: Stützvektor und Gerade (Projektion auf xy-Ebene mit z-Einfluss)
+    g1_x = int(g1[0] / scale + center_x + g1[2] / scale)  # z-Einfluss für Perspektive
+    g1_y = int(g1[1] / scale + center_y - g1[2] / scale)  # z-Einfluss für Perspektive
+    if 0 <= g1_x < width and 0 <= g1_y < height:
+        grid[g1_y][g1_x] = 'G'  # Stützvektor g1
     
     # Gerade 1 zeichnen
     for t in range(-5, 6):
-        x = int(g1[0] + t * r1[0]) // scale + center_x
-        y = int(g1[1] + t * r1[1]) // scale + center_y
-        z = int(g1[2] + t * r1[2]) // scale + center_z
-        if 0 <= x < width and 0 <= y < height and 0 <= z < depth and grid[z][y][x] not in ['+', 'G']:
-            grid[z][y][x] = '1'
+        x = g1[0] + t * r1[0]
+        y = g1[1] + t * r1[1]
+        z = g1[2] + t * r1[2]
+        proj_x = int(x / scale + center_x + z / scale)  # Perspektivische Projektion
+        proj_y = int(y / scale + center_y - z / scale)
+        if 0 <= proj_x < width and 0 <= proj_y < height and grid[proj_y][proj_x] not in ['+', 'G']:
+            grid[proj_y][proj_x] = '1'
     
     # Gerade 2: Stützvektor und Gerade
-    g2_x = int(g2[0]) // scale + center_x
-    g2_y = int(g2[1]) // scale + center_y
-    g2_z = int(g2[2]) // scale + center_z
-    if 0 <= g2_x < width and 0 <= g2_y < height and 0 <= g2_z < depth:
-        grid[g2_z][g2_y][g2_x] = 'H'  # Stützvektor g2
+    g2_x = int(g2[0] / scale + center_x + g2[2] / scale)
+    g2_y = int(g2[1] / scale + center_y - g2[2] / scale)
+    if 0 <= g2_x < width and 0 <= g2_y < height:
+        grid[g2_y][g2_x] = 'H'  # Stützvektor g2
     
     # Gerade 2 zeichnen
     for s in range(-5, 6):
-        x = int(g2[0] + s * r2[0]) // scale + center_x
-        y = int(g2[1] + s * r2[1]) // scale + center_y
-        z = int(g2[2] + s * r2[2]) // scale + center_z
-        if 0 <= x < width and 0 <= y < height and 0 <= z < depth and grid[z][y][x] not in ['+', 'H']:
-            grid[z][y][x] = '2'
+        x = g2[0] + s * r2[0]
+        y = g2[1] + s * r2[1]
+        z = g2[2] + s * r2[2]
+        proj_x = int(x / scale + center_x + z / scale)
+        proj_y = int(y / scale + center_y - z / scale)
+        if 0 <= proj_x < width and 0 <= proj_y < height and grid[proj_y][proj_x] not in ['+', 'H']:
+            grid[proj_y][proj_x] = '2'
     
     # Schnittpunkt markieren
     if schnittpunkt:
-        x = int(schnittpunkt[0]) // scale + center_x
-        y = int(schnittpunkt[1]) // scale + center_y
-        z = int(schnittpunkt[2]) // scale + center_z
-        if 0 <= x < width and 0 <= y < height and 0 <= z < depth:
-            grid[z][y][x] = 'X'
+        x, y, z = schnittpunkt
+        proj_x = int(x / scale + center_x + z / scale)
+        proj_y = int(y / scale + center_y - z / scale)
+        if 0 <= proj_x < width and 0 <= proj_y < height:
+            grid[proj_y][proj_x] = 'X'
     
-    # Grid als String formatieren (Schichtweise Darstellung)
-    drawing = ""
-    for z in range(depth):
-        drawing += f"\nz-Ebene {z - center_z}:\n"
-        # Achsenbeschriftungen hinzufügen
-        drawing += "  y\n"
-        for y in range(height):
-            row = "".join(grid[z][y])
-            drawing += f"{height - 1 - y:2d} {row}\n"
-        drawing += "   " + "".join([f"{i - center_x:2d}" for i in range(width)]) + " x\n"
+    # Grid als String formatieren (mit Achsenbeschriftungen)
+    drawing = "  y\n"
+    for y in range(height):
+        row = "".join(grid[y])
+        drawing += f"{height // 2 - y:2d} {row}\n"
+    drawing += "   " + "".join([f"{i - center_x:2d}" for i in range(width)]) + " x\n"
     return drawing
 
 # Berechnungen durchführen
@@ -214,7 +212,7 @@ if st.button("Lagebeziehung berechnen"):
             else:
                 st.write("Die Geraden sind echt parallel (kein Schnittpunkt).")
             
-            st.subheader("3D-Koordinatensystem")
+            st.subheader("3D-Koordinatensystem (perspektivische Projektion)")
             st.write("Legende: G = g1, H = g2, 1 = Gerade 1, 2 = Gerade 2")
             drawing = draw_3d_coordinate_system(g1, r1, g2, r2)
             st.code(drawing)
@@ -237,7 +235,7 @@ if st.button("Lagebeziehung berechnen"):
         st.write(f"II.  {eq2}")
         st.write(f"III. {eq3}")
         
-        # Lösen der ersten zwei Gleichungen
+        # Lösen der ersten zwei Gleichungen (verbessert für alle Fälle)
         st.write("Wir lösen die ersten zwei Gleichungen nach t und s:")
         a1, b1, c1 = r1[0], -r2[0], g2[0] - g1[0]
         a2, b2, c2 = r1[1], -r2[1], g2[1] - g1[1]
@@ -249,49 +247,17 @@ if st.button("Lagebeziehung berechnen"):
         t = None
         s = None
         
-        # Fall 1: a1 != 0, löse nach t
-        if a1 != 0:
-            st.write("Nach t auflösen in Gleichung I:")
-            st.write(f"t = ({c1} - ({b1}) * s) / {a1}")
-            st.write("Setze t in II ein:")
-            st.write(f"II.  {a2} * ({c1} - ({b1}) * s) / {a1} + ({b2}) * s = {c2}")
-            st.write(f"     {a2} * ({c1} - ({b1}) * s) / {a1} + ({b2}) * s = {c2}")
-            st.write(f"     {a2} * ({c1} - ({b1}) * s) + ({b2}) * s * {a1} = {c2} * {a1}")
-            st.write(f"     {a2} * {c1} - {a2} * ({b1}) * s + ({b2}) * s * {a1} = {c2} * {a1}")
-            st.write(f"     {a2} * {c1} + s * (-{a2} * ({b1}) + ({b2}) * {a1}) = {c2} * {a1}")
-            coeff_s = -a2 * b1 + b2 * a1
-            const = c2 * a1 - a2 * c1
-            st.write(f"     s * ({coeff_s}) = {const}")
-            if coeff_s != 0:
-                s = const / coeff_s
-                st.write(f"     s = {const} / ({coeff_s}) = {s}")
-            else:
-                st.write("Koeffizient von s ist 0, keine Lösung möglich.")
-                s = None
-            
-            if s is not None:
-                st.write("Setze s in I ein, um t zu berechnen:")
-                t = (c1 - b1 * s) / a1
-                st.write(f"t = ({c1} - ({b1}) * {s}) / {a1} = {t}")
+        # Determinante berechnen, um zu prüfen, ob das Gleichungssystem lösbar ist
+        det = a1 * b2 - a2 * b1
+        if det != 0:
+            # Nach t und s auflösen (Cramer'sche Regel)
+            t = (c1 * b2 - c2 * b1) / det
+            s = (a1 * c2 - a2 * c1) / det
+            st.write(f"Determinante: {det}")
+            st.write(f"t = ({c1} * {b2} - {c2} * {b1}) / {det} = {t}")
+            st.write(f"s = ({a1} * {c2} - {a2} * {c1}) / {det} = {s}")
         else:
-            st.write("Koeffizient von t in I ist 0, wir lösen direkt nach s:")
-            if b1 != 0:
-                s = c1 / b1
-                st.write(f"s = {c1} / ({b1}) = {s}")
-                st.write("Setze s in II ein:")
-                if a2 != 0:
-                    t = (c2 - b2 * s) / a2
-                    st.write(f"II.  {a2} * t + ({b2}) * {s} = {c2}")
-                    st.write(f"     {a2} * t = {c2} - ({b2}) * {s}")
-                    st.write(f"     t = ({c2} - ({b2}) * {s}) / {a2} = {t}")
-                else:
-                    st.write("Koeffizient von t in II ist 0, keine Lösung möglich.")
-                    t = None
-                    s = None
-            else:
-                st.write("Keine Lösung möglich, da Koeffizient von s in I auch 0 ist.")
-                t = None
-                s = None
+            st.write("Determinante ist 0, keine eindeutige Lösung möglich.")
         
         # Konsistenzprüfung
         st.subheader("Schritt 3.1: Konsistenzprüfung mit Gleichung III")
@@ -311,20 +277,20 @@ if st.button("Lagebeziehung berechnen"):
                 st.write(f"y = {g1[1]} + {t} * {r1[1]} = {schnittpunkt[1]}")
                 st.write(f"z = {g1[2]} + {t} * {r1[2]} = {schnittpunkt[2]}")
                 st.write(f"Schnittpunkt: {schnittpunkt}")
-                st.subheader("3D-Koordinatensystem")
+                st.subheader("3D-Koordinatensystem (perspektivische Projektion)")
                 st.write("Legende: G = g1, H = g2, 1 = Gerade 1, 2 = Gerade 2, X = Schnittpunkt")
                 drawing = draw_3d_coordinate_system(g1, r1, g2, r2, schnittpunkt)
                 st.code(drawing)
             else:
                 st.write("Die dritte Gleichung ist nicht erfüllt → Die Geraden sind windschief.")
                 st.write(f"Ergebnis: Keine konsistente Lösung, die Geraden sind windschief.")
-                st.subheader("3D-Koordinatensystem")
+                st.subheader("3D-Koordinatensystem (perspektivische Projektion)")
                 st.write("Legende: G = g1, H = g2, 1 = Gerade 1, 2 = Gerade 2")
                 drawing = draw_3d_coordinate_system(g1, r1, g2, r2)
                 st.code(drawing)
         else:
             st.write("Keine Lösung für t und s gefunden → Die Geraden sind windschief.")
-            st.subheader("3D-Koordinatensystem")
+            st.subheader("3D-Koordinatensystem (perspektivische Projektion)")
             st.write("Legende: G = g1, H = g2, 1 = Gerade 1, 2 = Gerade 2")
             drawing = draw_3d_coordinate_system(g1, r1, g2, r2)
             st.code(drawing)

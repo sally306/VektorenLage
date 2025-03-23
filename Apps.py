@@ -311,7 +311,7 @@ if st.button("Lagebeziehung berechnen"):
                 st.write("Die dritte Zeile ist 0 = 0, das System ist lösbar.")
                 t = matrix[0][2] / matrix[0][0] if abs(matrix[0][0]) > 1e-10 else None
                 s = matrix[1][2]
-                st.write(f"t = {t}, s = {s}")
+                st.write(f"t = {t:.6f}, s = {s:.6f}")
                 
                 if t is not None:
                     # Schrittweise Schnittpunktberechnung
@@ -320,28 +320,36 @@ if st.button("Lagebeziehung berechnen"):
                     x = g1[0] + t * r1[0]
                     y = g1[1] + t * r1[1]
                     z = g1[2] + t * r1[2]
-                    st.write(f"x = {g1[0]} + {t} * {r1[0]} = {x}")
-                    st.write(f"y = {g1[1]} + {t} * {r1[1]} = {y}")
-                    st.write(f"z = {g1[2]} + {t} * {r1[2]} = {z}")
+                    st.write(f"x = {g1[0]} + {t:.6f} * {r1[0]} = {x:.6f}")
+                    st.write(f"y = {g1[1]} + {t:.6f} * {r1[1]} = {y:.6f}")
+                    st.write(f"z = {g1[2]} + {t:.6f} * {r1[2]} = {z:.6f}")
                     schnittpunkt = [x, y, z]
-                    st.write(f"Schnittpunkt: {schnittpunkt}")
-                    
+                    st.write(f"Schnittpunkt (Gerade 1): {schnittpunkt}")
+
                     # Überprüfung mit Gerade 2
                     st.write("Überprüfung mit s in Gerade 2:")
                     x2_check = g2[0] + s * r2[0]
                     y2_check = g2[1] + s * r2[1]
                     z2_check = g2[2] + s * r2[2]
-                    st.write(f"x = {g2[0]} + {s} * {r2[0]} = {x2_check}")
-                    st.write(f"y = {g2[1]} + {s} * {r2[1]} = {y2_check}")
-                    st.write(f"z = {g2[2]} + {s} * {r2[2]} = {z2_check}")
+                    st.write(f"x = {g2[0]} + {s:.6f} * {r2[0]} = {x2_check:.6f}")
+                    st.write(f"y = {g2[1]} + {s:.6f} * {r2[1]} = {y2_check:.6f}")
+                    st.write(f"z = {g2[2]} + {s:.6f} * {r2[2]} = {z2_check:.6f}")
                     schnittpunkt2 = [x2_check, y2_check, z2_check]
                     st.write(f"Schnittpunkt (Gerade 2): {schnittpunkt2}")
-                    
-                    if (abs(x - x2_check) < 1e-10 and 
-                        abs(y - y2_check) < 1e-10 and 
-                        abs(z - z2_check) < 1e-10):
-                        st.write("Die Schnittpunkte stimmen überein. Die Geraden schneiden sich im Punkt:")
-                        st.write(f"Schnittpunkt: {schnittpunkt}")
+
+                    # Debugging: Unterschiede anzeigen
+                    st.write("Debugging: Unterschiede zwischen den Schnittpunkten:")
+                    st.write(f"x-Differenz: {abs(x - x2_check):.10f}")
+                    st.write(f"y-Differenz: {abs(y - y2_check):.10f}")
+                    st.write(f"z-Differenz: {abs(z - z2_check):.10f}")
+
+                    # Toleranz für den Vergleich anpassen
+                    tolerance = 1e-6  # Toleranz auf 1e-6 anpassen
+                    if (abs(x - x2_check) < tolerance and 
+                        abs(y - y2_check) < tolerance and 
+                        abs(z - z2_check) < tolerance):
+                        st.write("Die Schnittpunkte stimmen überein (innerhalb der Toleranz). Die Geraden schneiden sich im Punkt:")
+                        st.write(f"Schnittpunkt: [{x:.3f}, {y:.3f}, {z:.3f}]")
                     else:
                         st.write("Die Schnittpunkte stimmen nicht überein. Das System ist nicht korrekt gelöst.")
                         st.write("Die Geraden sind windschief.")

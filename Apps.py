@@ -226,10 +226,33 @@ if st.button("Lagebeziehung berechnen"):
         st.write(f"II.  {a2} * t + ({b2}) * s = {c2}")
         
         # Schrittweise Lösung wie im Bild
-        st.write("Nach t auflösen in Gleichung I:")
+        t = None
+        s = None
+        
+        # Fall 1: a1 != 0, löse nach t
         if a1 != 0:
-            t_expr = f"t = ({c1} - ({b1}) * s) / {a1}"
-            st.write(f"I.   {t_expr}")
+            st.write("Nach t auflösen in Gleichung I:")
+            st.write(f"t = ({c1} - ({b1}) * s) / {a1}")
+            st.write("Setze t in II ein:")
+            st.write(f"II.  {a2} * ({c1} - ({b1}) * s) / {a1} + ({b2}) * s = {c2}")
+            st.write(f"     {a2} * ({c1} - ({b1}) * s) / {a1} + ({b2}) * s = {c2}")
+            st.write(f"     {a2} * ({c1} - ({b1}) * s) + ({b2}) * s * {a1} = {c2} * {a1}")
+            st.write(f"     {a2} * {c1} - {a2} * ({b1}) * s + ({b2}) * s * {a1} = {c2} * {a1}")
+            st.write(f"     {a2} * {c1} + s * (-{a2} * ({b1}) + ({b2}) * {a1}) = {c2} * {a1}")
+            coeff_s = -a2 * b1 + b2 * a1
+            const = c2 * a1 - a2 * c1
+            st.write(f"     s * ({coeff_s}) = {const}")
+            if coeff_s != 0:
+                s = const / coeff_s
+                st.write(f"     s = {const} / ({coeff_s}) = {s}")
+            else:
+                st.write("Koeffizient von s ist 0, keine Lösung möglich.")
+                s = None
+            
+            if s is not None:
+                st.write("Setze s in I ein, um t zu berechnen:")
+                t = (c1 - b1 * s) / a1
+                st.write(f"t = ({c1} - ({b1}) * {s}) / {a1} = {t}")
         else:
             st.write("Koeffizient von t in I ist 0, wir lösen direkt nach s:")
             if b1 != 0:
@@ -250,66 +273,38 @@ if st.button("Lagebeziehung berechnen"):
                 t = None
                 s = None
         
-        if t is None or s is None:
+        # Konsistenzprüfung
+        if t is not None and s is not None:
+            st.subheader("Schritt 3.1: Konsistenzprüfung mit Gleichung III")
+            st.write("Setze t und s in die dritte Gleichung ein:")
+            left = g1[2] + t * r1[2]
+            right = g2[2] + s * r2[2]
+            st.write(f"III. {g1[2]} + t * {r1[2]} = {g2[2]} + s * {r2[2]}")
+            st.write(f"     {g1[2]} + {t} * {r1[2]} = {g2[2]} + {s} * {r2[2]}")
+            st.write(f"     {left} = {right}")
+            
+            if abs(left - right) < 1e-10:
+                st.write("Die dritte Gleichung ist erfüllt → Die Geraden schneiden sich!")
+                schnittpunkt = vector_add_scalar(g1, t, r1)
+                st.write("Berechne den Schnittpunkt mit t in Gerade 1:")
+                st.write(f"x = {g1[0]} + {t} * {r1[0]} = {schnittpunkt[0]}")
+                st.write(f"y = {g1[1]} + {t} * {r1[1]} = {schnittpunkt[1]}")
+                st.write(f"z = {g1[2]} + {t} * {r1[2]} = {schnittpunkt[2]}")
+                st.write(f"Schnittpunkt: {schnittpunkt}")
+                st.subheader("Koordinatensystem (xy-Projektion)")
+                st.write("Legende: G = g1, H = g2, 1 = Gerade 1, 2 = Gerade 2, X = Schnittpunkt")
+                drawing = draw_coordinate_system(g1, r1, g2, r2, schnittpunkt)
+                st.code(drawing)
+            else:
+                st.write("Die dritte Gleichung ist nicht erfüllt → Die Geraden sind windschief.")
+                st.write(f"Ergebnis: Keine Lösung, die Geraden sind windschief.")
+                st.subheader("Koordinatensystem (xy-Projektion)")
+                st.write("Legende: G = g1, H = g2, 1 = Gerade 1, 2 = Gerade 2")
+                drawing = draw_coordinate_system(g1, r1, g2, r2)
+                st.code(drawing)
+        else:
             st.write("Keine Lösung für t und s gefunden → Die Geraden sind windschief.")
             st.subheader("Koordinatensystem (xy-Projektion)")
             st.write("Legende: G = g1, H = g2, 1 = Gerade 1, 2 = Gerade 2")
             drawing = draw_coordinate_system(g1, r1, g2, r2)
             st.code(drawing)
-        else:
-            st.write("Setze t in II ein:")
-            st.write(f"II.  {a2} * ({c1} - ({b1}) * s) / {a1} + ({b2}) * s = {c2}")
-            st.write(f"     {a2} * ({c1} - ({b1}) * s) / {a1} + ({b2}) * s = {c2}")
-            st.write(f"     {a2} * ({c1} - ({b1}) * s) + ({b2}) * s * {a1} = {c2} * {a1}")
-            st.write(f"     {a2} * {c1} - {a2} * ({b1}) * s + ({b2}) * s * {a1} = {c2} * {a1}")
-            st.write(f"     {a2} * {c1} + s * (-{a2} * ({b1}) + ({b2}) * {a1}) = {c2} * {a1}")
-            coeff_s = -a2 * b1 + b2 * a1
-            const = c2 * a1 - a2 * c1
-            st.write(f"     s * ({coeff_s}) = {const}")
-            if coeff_s != 0:
-                s = const / coeff_s
-                st.write(f"     s = {const} / ({coeff_s}) = {s}")
-            else:
-                st.write("Koeffizient von s ist 0, keine Lösung möglich.")
-                s = None
-            
-            if s is not None:
-                st.write("Setze s in I ein, um t zu berechnen:")
-                t = (c1 - b1 * s) / a1 if a1 != 0 else None
-                st.write(f"t = ({c1} - ({b1}) * {s}) / {a1} = {t}")
-            
-            # Konsistenzprüfung
-            if t is not None and s is not None:
-                st.subheader("Schritt 3.1: Konsistenzprüfung mit Gleichung III")
-                st.write("Setze t und s in die dritte Gleichung ein:")
-                left = g1[2] + t * r1[2]
-                right = g2[2] + s * r2[2]
-                st.write(f"III. {g1[2]} + t * {r1[2]} = {g2[2]} + s * {r2[2]}")
-                st.write(f"     {g1[2]} + {t} * {r1[2]} = {g2[2]} + {s} * {r2[2]}")
-                st.write(f"     {left} = {right}")
-                
-                if abs(left - right) < 1e-10:
-                    st.write("Die dritte Gleichung ist erfüllt → Die Geraden schneiden sich!")
-                    schnittpunkt = vector_add_scalar(g1, t, r1)
-                    st.write("Berechne den Schnittpunkt mit t in Gerade 1:")
-                    st.write(f"x = {g1[0]} + {t} * {r1[0]} = {schnittpunkt[0]}")
-                    st.write(f"y = {g1[1]} + {t} * {r1[1]} = {schnittpunkt[1]}")
-                    st.write(f"z = {g1[2]} + {t} * {r1[2]} = {schnittpunkt[2]}")
-                    st.write(f"Schnittpunkt: {schnittpunkt}")
-                    st.subheader("Koordinatensystem (xy-Projektion)")
-                    st.write("Legende: G = g1, H = g2, 1 = Gerade 1, 2 = Gerade 2, X = Schnittpunkt")
-                    drawing = draw_coordinate_system(g1, r1, g2, r2, schnittpunkt)
-                    st.code(drawing)
-                else:
-                    st.write("Die dritte Gleichung ist nicht erfüllt → Die Geraden sind windschief.")
-                    st.write(f"Ergebnis: Keine Lösung, die Geraden sind windschief.")
-                    st.subheader("Koordinatensystem (xy-Projektion)")
-                    st.write("Legende: G = g1, H = g2, 1 = Gerade 1, 2 = Gerade 2")
-                    drawing = draw_coordinate_system(g1, r1, g2, r2)
-                    st.code(drawing)
-            else:
-                st.write("Keine Lösung für t und s gefunden → Die Geraden sind windschief.")
-                st.subheader("Koordinatensystem (xy-Projektion)")
-                st.write("Legende: G = g1, H = g2, 1 = Gerade 1, 2 = Gerade 2")
-                drawing = draw_coordinate_system(g1, r1, g2, r2)
-                st.code(drawing)

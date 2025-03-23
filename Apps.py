@@ -25,7 +25,7 @@ with col2:
     st.subheader("Richtungsvektor r1")
     rx1 = st.number_input("rx1", value=1.0, step=1.0, key="rx1")
     ry1 = st.number_input("ry1", value=2.0, step=1.0, key="ry1")
-    rz1 = st.number_input("rz1", value=2.0, step=1.0, key="rz1")
+    rz1 = st.number_input("rz1", value=3.0, step=1.0, key="rz1")
 
 # Eingabefelder für die zweite Gerade
 st.header("Gerade 2")
@@ -33,15 +33,15 @@ col3, col4 = st.columns(2)
 
 with col3:
     st.subheader("Stützvektor g2")
-    x2 = st.number_input("x2", value=0.0, step=1.0, key="x2")
+    x2 = st.number_input("x2", value=1.0, step=1.0, key="x2")
     y2 = st.number_input("y2", value=1.0, step=1.0, key="y2")
-    z2 = st.number_input("z2", value=0.0, step=1.0, key="z2")
+    z2 = st.number_input("z2", value=1.0, step=1.0, key="z2")
 
 with col4:
     st.subheader("Richtungsvektor r2")
-    rx2 = st.number_input("rx2", value=1.0, step=1.0, key="rx2")
-    ry2 = st.number_input("ry2", value=2.0, step=1.0, key="ry2")
-    rz2 = st.number_input("rz2", value=0.0, step=1.0, key="rz2")
+    rx2 = st.number_input("rx2", value=4.0, step=1.0, key="rx2")
+    ry2 = st.number_input("ry2", value=5.0, step=1.0, key="ry2")
+    rz2 = st.number_input("rz2", value=6.0, step=1.0, key="rz2")
 
 # Vektoren als Listen definieren
 g1 = [x1, y1, z1]

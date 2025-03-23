@@ -24,8 +24,8 @@ with col1:
 with col2:
     st.subheader("Richtungsvektor r1")
     rx1 = st.number_input("rx1", value=1.0, step=1.0, key="rx1")
-    ry1 = st.number_input("ry1", value=0.0, step=1.0, key="ry1")
-    rz1 = st.number_input("rz1", value=0.0, step=1.0, key="rz1")
+    ry1 = st.number_input("ry1", value=2.0, step=1.0, key="ry1")
+    rz1 = st.number_input("rz1", value=2.0, step=1.0, key="rz1")
 
 # Eingabefelder für die zweite Gerade
 st.header("Gerade 2")
@@ -39,9 +39,9 @@ with col3:
 
 with col4:
     st.subheader("Richtungsvektor r2")
-    rx2 = st.number_input("rx2", value=0.0, step=1.0, key="rx2")
-    ry2 = st.number_input("ry2", value=1.0, step=1.0, key="ry2")
-    rz2 = st.number_input("rz2", value=0.0, step=1.0, key="rz2")
+    rx2 = st.number_input("rx2", value=1.0, step=1.0, key="rx2")
+    ry2 = st.number_input("ry2", value=2.0, step=1.0, key="ry2")
+    rz2 = st.number_input("rz2", value=1.0, step=1.0, key="rz2")
 
 # Vektoren als Listen definieren
 g1 = [x1, y1, z1]
@@ -75,21 +75,23 @@ if st.button("Lagebeziehung berechnen"):
     st.write(f"y = {g2[1]} + s * {r2[1]}")
     st.write(f"z = {g2[2]} + s * {r2[2]}")
 
-    # Schritt 2: Parallelitätsprüfung
+    # Schritt 2: Prüfung auf Parallelität
     st.subheader("Schritt 2: Prüfung auf Parallelität")
     st.write("Zwei Geraden sind parallel, wenn ihre Richtungsvektoren Vielfache sind: r2 = λ * r1.")
     st.write(f"r1 = {r1}, r2 = {r2}")
+    
+    # Prüfung, ob r1 und r2 Vielfache sind
     parallel = True
     lambda_values = []
     for i in range(3):
-        if r1[i] != 0:
+        if r1[i] != 0 and r2[i] != 0:
             lambda_val = r2[i] / r1[i]
             lambda_values.append(lambda_val)
             st.write(f"Komponente {i+1}: {r2[i]} / {r1[i]} = {lambda_val}")
-        elif r2[i] == 0:
+        elif r1[i] == 0 and r2[i] == 0:
             st.write(f"Komponente {i+1}: Beide 0, passt.")
         else:
-            st.write(f"Komponente {i+1}: r1[{i}] = 0, r2[{i}] = {r2[i]} ≠ 0 → kein Vielfaches!")
+            st.write(f"Komponente {i+1}: r1[{i}] = {r1[i]}, r2[{i}] = {r2[i]} → kein Vielfaches!")
             parallel = False
             break
     
@@ -103,7 +105,7 @@ if st.button("Lagebeziehung berechnen"):
         if parallel:
             st.write(f"Die Richtungsvektoren sind Vielfache (λ = {first_lambda}), also sind die Geraden parallel.")
             
-            # Prüfung, ob Stützpunkt g2 auf Gerade 1 liegt
+            # Schritt 2.1: Prüfung, ob Stützpunkt g2 auf Gerade 1 liegt
             st.subheader("Schritt 2.1: Prüfung, ob Stützpunkt g2 auf Gerade 1 liegt")
             st.write("Da die Geraden parallel sind, prüfen wir, ob sie identisch sind.")
             st.write("Dazu prüfen wir, ob der Stützvektor g2 auf Gerade 1 liegt.")
@@ -338,7 +340,7 @@ if st.button("Lagebeziehung berechnen"):
                     if (abs(x - x2_check) < 1e-10 and 
                         abs(y - y2_check) < 1e-10 and 
                         abs(z - z2_check) < 1e-10):
-                        st.write("Die Schnittpunkte stimmen überein. Die Geraden schneiden sich im Punkt:")
+                        st.write("Die Schnittpunkte stimmen überein. Die Geraden schneiden sich Windschief im Punkt:")
                         st.write(f"Schnittpunkt: {schnittpunkt}")
                     else:
                         st.write("Die Schnittpunkte stimmen nicht überein. Das System ist nicht korrekt gelöst.")

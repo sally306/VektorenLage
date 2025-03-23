@@ -1,4 +1,3 @@
-￼Enter file contents here
 import streamlit as st
 
 # Titel der Anwendung

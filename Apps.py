@@ -8,7 +8,7 @@ st.write("""
 Geben Sie die Stütz- und Richtungsvektoren für zwei Geraden im ℝ³ ein. 
 Wir untersuchen ihre Lagebeziehung (parallel, schneidend, windschief, identisch) 
 und berechnen bei sich schneidenden Geraden den Schnittpunkt.
-Die Schritte folgen exakt der Methode aus dem Beispielbild.
+Die Schritte folgen der Methode von Mathepower.
 """)
 
 # Eingabefelder für die erste Gerade
@@ -53,15 +53,11 @@ r2 = [rx2, ry2, rz2]
 def vector_subtract(v1, v2):
     return [v1[0] - v2[0], v1[1] - v2[1], v1[2] - v2[2]]
 
-# Funktion für Vektoraddition mit Skalar
-def vector_add_scalar(v, scalar, direction):
-    return [v[0] + scalar * direction[0], v[1] + scalar * direction[1], v[2] + scalar * direction[2]]
-
 # Berechnungen durchführen
 if st.button("Lagebeziehung berechnen"):
-    st.header("Schritt-für-Schritt-Analyse auf Oberstufen-Niveau")
+    st.header("Schritt-für-Schritt-Analyse nach Mathepower")
 
-    # Schritt 1: Geradengleichungen
+    # Schritt 1: Geradengleichungen aufstellen
     st.subheader("Schritt 1: Geradengleichungen aufstellen")
     st.write("Die parametrische Form einer Geraden ist: **x = g + t * r**.")
     st.write("Für Gerade 1:")
@@ -75,13 +71,13 @@ if st.button("Lagebeziehung berechnen"):
     st.write(f"y = {g2[1]} + s * {r2[1]}")
     st.write(f"z = {g2[2]} + s * {r2[2]}")
 
-    # Schritt 2: Prüfung auf Parallelität
-    st.subheader("Schritt 2: Prüfung auf Parallelität")
-    st.write("Zwei Geraden sind parallel, wenn ihre Richtungsvektoren Vielfache sind: r2 = λ * r1.")
+    # Schritt 2: Prüfung auf Kollinearität der Richtungsvektoren
+    st.subheader("Schritt 2: Prüfung auf Kollinearität der Richtungsvektoren")
+    st.write("Zwei Geraden sind parallel oder identisch, wenn ihre Richtungsvektoren kollinear sind: r2 = λ * r1.")
     st.write(f"r1 = {r1}, r2 = {r2}")
     
-    # Prüfung, ob r1 und r2 Vielfache sind
-    parallel = True
+    # Prüfung, ob r1 und r2 kollinear sind
+    collinear = True
     lambda_values = []
     for i in range(3):
         if r1[i] != 0 and r2[i] != 0:
@@ -92,22 +88,22 @@ if st.button("Lagebeziehung berechnen"):
             st.write(f"Komponente {i+1}: Beide 0, passt.")
         else:
             st.write(f"Komponente {i+1}: r1[{i}] = {r1[i]}, r2[{i}] = {r2[i]} → kein Vielfaches!")
-            parallel = False
+            collinear = False
             break
     
-    if parallel and lambda_values:
+    if collinear and lambda_values:
         first_lambda = lambda_values[0]
         for lam in lambda_values[1:]:
-            if abs(lam - first_lambda) > 1e-10:
-                parallel = False
+            if abs(lam - first_lambda) > 1e-6:  # Toleranz für Rundungsfehler
+                collinear = False
                 st.write(f"λ-Werte unterschiedlich: {lambda_values} → keine Vielfachen!")
                 break
-        if parallel:
-            st.write(f"Die Richtungsvektoren sind Vielfache (λ = {first_lambda}), also sind die Geraden parallel.")
+        if collinear:
+            st.write(f"Die Richtungsvektoren sind kollinear (λ = {first_lambda}), also sind die Geraden parallel oder identisch.")
             
             # Schritt 2.1: Prüfung, ob Stützpunkt g2 auf Gerade 1 liegt
             st.subheader("Schritt 2.1: Prüfung, ob Stützpunkt g2 auf Gerade 1 liegt")
-            st.write("Da die Geraden parallel sind, prüfen wir, ob sie identisch sind.")
+            st.write("Da die Geraden kollinear sind, prüfen wir, ob sie identisch sind.")
             st.write("Dazu prüfen wir, ob der Stützvektor g2 auf Gerade 1 liegt.")
             st.write("Das bedeutet, es muss ein t existieren, sodass g2 = g1 + t * r1.")
             diff = vector_subtract(g2, g1)
@@ -133,7 +129,7 @@ if st.button("Lagebeziehung berechnen"):
                 first_t = t_values[0]
                 identical = True
                 for t_val in t_values[1:]:
-                    if abs(t_val - first_t) > 1e-10:
+                    if abs(t_val - first_t) > 1e-6:
                         identical = False
                         st.write(f"t-Werte unterschiedlich: {t_values} → Die Geraden sind nicht identisch!")
                         break
@@ -145,11 +141,11 @@ if st.button("Lagebeziehung berechnen"):
             else:
                 st.write("Die Geraden sind echt parallel (kein Schnittpunkt).")
     else:
-        st.write("Die Richtungsvektoren sind keine Vielfachen, also sind die Geraden nicht parallel.")
+        st.write("Die Richtungsvektoren sind nicht kollinear, also sind die Geraden entweder schneidend oder windschief.")
         
-        # Schritt 3: Schnittpunktprüfung mit Gauß-Verfahren
-        st.subheader("Schritt 3: Gibt es einen Schnittpunkt? (Gauß-Verfahren)")
-        st.write("Da die Geraden nicht parallel sind, prüfen wir, ob sie sich schneiden.")
+        # Schritt 3: Schnittpunktprüfung mit Gleichungssystem
+        st.subheader("Schritt 3: Gibt es einen Schnittpunkt? (Gleichungssystem)")
+        st.write("Da die Geraden nicht kollinear sind, prüfen wir, ob sie sich schneiden.")
         st.write("Wir setzen die Geradengleichungen gleich:")
         st.write(f"I.   {g1[0]} + t * {r1[0]} = {g2[0]} + s * {r2[0]}")
         st.write(f"II.  {g1[1]} + t * {r1[1]} = {g2[1]} + s * {r2[1]}")
@@ -180,10 +176,9 @@ if st.button("Lagebeziehung berechnen"):
         
         # Gauß-Verfahren Schritt-für-Schritt
         st.write("(1) Ziel: Eliminieren von t in den Gleichungen II und III")
-        # Finde das erste nicht-null Pivot in der ersten Spalte
         pivot_row = 0
         for i in range(3):
-            if abs(matrix[i][0]) > 1e-10:
+            if abs(matrix[i][0]) > 1e-6:
                 pivot_row = i
                 break
         else:
@@ -191,18 +186,18 @@ if st.button("Lagebeziehung berechnen"):
             consistent = True
             s_values = []
             for i in range(3):
-                if abs(matrix[i][1]) > 1e-10:
+                if abs(matrix[i][1]) > 1e-6:
                     s_val = matrix[i][2] / matrix[i][1]
                     s_values.append(s_val)
                     st.write(f"Gleichung {i+1}: s = {matrix[i][2]} / {matrix[i][1]} = {s_val}")
-                elif abs(matrix[i][2]) > 1e-10:
+                elif abs(matrix[i][2]) > 1e-6:
                     st.write(f"Gleichung {i+1}: 0 = {matrix[i][2]} → Widerspruch!")
                     consistent = False
                     break
             if consistent and s_values:
                 s = s_values[0]
                 for s_val in s_values[1:]:
-                    if abs(s_val - s) > 1e-10:
+                    if abs(s_val - s) > 1e-6:
                         consistent = False
                         break
                 if consistent:
@@ -214,7 +209,6 @@ if st.button("Lagebeziehung berechnen"):
                 st.write("Die Gleichungen sind nicht konsistent. Die Geraden sind windschief.")
             st.stop()
         
-        # Vertausche Zeile 1 mit der Pivot-Zeile, falls nötig
         if pivot_row != 0:
             st.write(f"Vertausche Zeile 1 mit Zeile {pivot_row + 1}, um ein nicht-null Pivot zu erhalten:")
             matrix[0], matrix[pivot_row] = matrix[pivot_row], matrix[0]
@@ -225,9 +219,8 @@ if st.button("Lagebeziehung berechnen"):
             st.code(matrix_display)
         
         pivot1 = matrix[0][0]
-        # Eliminieren von t in Zeile 2 und 3
         for i in range(1, 3):
-            if abs(matrix[i][0]) > 1e-10:
+            if abs(matrix[i][0]) > 1e-6:
                 factor = matrix[i][0] / pivot1
                 st.write(f"Faktor für Zeile {i+1}: {matrix[i][0]} / {pivot1} = {factor}")
                 for j in range(3):
@@ -246,26 +239,25 @@ if st.button("Lagebeziehung berechnen"):
         st.write("(2) Ziel: Koeffizient von s in Gleichung II auf 1 bringen")
         pivot_row = 1
         for i in range(1, 3):
-            if abs(matrix[i][1]) > 1e-10:
+            if abs(matrix[i][1]) > 1e-6:
                 pivot_row = i
                 break
         else:
             st.write("Alle Koeffizienten von s in Zeile 2 und 3 sind 0. Wir prüfen die Gleichungen auf Konsistenz.")
             consistent = True
             for i in range(1, 3):
-                if abs(matrix[i][2]) > 1e-10:
+                if abs(matrix[i][2]) > 1e-6:
                     st.write(f"Gleichung {i+1}: 0 = {matrix[i][2]} → Widerspruch!")
                     consistent = False
                     break
             if consistent:
-                t = matrix[0][2] / matrix[0][0] if abs(matrix[0][0]) > 1e-10 else 0
+                t = matrix[0][2] / matrix[0][0] if abs(matrix[0][0]) > 1e-6 else 0
                 st.write(f"Alle Gleichungen sind konsistent, t = {t}. Da s nicht vorkommt, ist s frei.")
                 st.write("Die Geraden schneiden sich nicht (windschief oder parallel in einer Ebene).")
             else:
                 st.write("Die Gleichungen sind nicht konsistent. Die Geraden sind windschief.")
             st.stop()
         
-        # Vertausche Zeile 2 mit der Pivot-Zeile, falls nötig
         if pivot_row != 1:
             st.write(f"Vertausche Zeile 2 mit Zeile {pivot_row + 1}, um ein nicht-null Pivot zu erhalten:")
             matrix[1], matrix[pivot_row] = matrix[pivot_row], matrix[1]
@@ -289,7 +281,7 @@ if st.button("Lagebeziehung berechnen"):
         # (3) Eliminieren von s in Zeile 1 und 3
         st.write("(3) Ziel: Eliminieren von s in den Gleichungen I und III")
         for i in [0, 2]:
-            if abs(matrix[i][1]) > 1e-10:
+            if abs(matrix[i][1]) > 1e-6:
                 factor = matrix[i][1] / matrix[1][1]
                 st.write(f"Faktor für Zeile {i+1}: {matrix[i][1]} / {matrix[1][1]} = {factor}")
                 for j in range(3):
@@ -306,16 +298,16 @@ if st.button("Lagebeziehung berechnen"):
         
         # (4) Analyse der Stufenform
         st.write("(4) Analyse der Stufenform")
-        if abs(matrix[2][0]) < 1e-10 and abs(matrix[2][1]) < 1e-10:
-            if abs(matrix[2][2]) < 1e-10:
+        if abs(matrix[2][0]) < 1e-6 and abs(matrix[2][1]) < 1e-6:
+            if abs(matrix[2][2]) < 1e-6:
                 st.write("Die dritte Zeile ist 0 = 0, das System ist lösbar.")
-                t = matrix[0][2] / matrix[0][0] if abs(matrix[0][0]) > 1e-10 else None
+                t = matrix[0][2] / matrix[0][0] if abs(matrix[0][0]) > 1e-6 else None
                 s = matrix[1][2]
                 st.write(f"t = {t:.6f}, s = {s:.6f}")
                 
                 if t is not None:
                     # Schrittweise Schnittpunktberechnung
-                    st.subheader("Schritt 3.1: Schnittpunkt schrittweise berechnen")
+                    st.subheader("Schritt 4.1: Schnittpunkt berechnen")
                     st.write("Wir berechnen den Schnittpunkt mit t in Gerade 1:")
                     x = g1[0] + t * r1[0]
                     y = g1[1] + t * r1[1]
@@ -337,22 +329,15 @@ if st.button("Lagebeziehung berechnen"):
                     schnittpunkt2 = [x2_check, y2_check, z2_check]
                     st.write(f"Schnittpunkt (Gerade 2): {schnittpunkt2}")
 
-                    # Debugging: Unterschiede anzeigen
-                    st.write("Debugging: Unterschiede zwischen den Schnittpunkten:")
-                    st.write(f"x-Differenz: {abs(x - x2_check):.10f}")
-                    st.write(f"y-Differenz: {abs(y - y2_check):.10f}")
-                    st.write(f"z-Differenz: {abs(z - z2_check):.10f}")
-
-                    # Toleranz für den Vergleich anpassen
-                    tolerance = 1e-6  # Toleranz auf 1e-6 anpassen
+                    # Toleranz für den Vergleich
+                    tolerance = 1e-6
                     if (abs(x - x2_check) < tolerance and 
                         abs(y - y2_check) < tolerance and 
                         abs(z - z2_check) < tolerance):
                         st.write("Die Schnittpunkte stimmen überein (innerhalb der Toleranz). Die Geraden schneiden sich im Punkt:")
                         st.write(f"Schnittpunkt: [{x:.3f}, {y:.3f}, {z:.3f}]")
                     else:
-                        st.write("Die Schnittpunkte stimmen nicht überein. Das System ist nicht korrekt gelöst.")
-                        st.write("Die Geraden sind windschief.")
+                        st.write("Die Schnittpunkte stimmen nicht überein. Die Geraden sind windschief.")
                 else:
                     st.write("Der Koeffizient von t in Zeile 1 ist 0, das System ist nicht eindeutig lösbar.")
                     st.write("Die Geraden sind windschief.")

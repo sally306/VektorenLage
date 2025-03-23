@@ -57,55 +57,66 @@ def vector_subtract(v1, v2):
 def vector_add_scalar(v, scalar, direction):
     return [v[0] + scalar * direction[0], v[1] + scalar * direction[1], v[2] + scalar * direction[2]]
 
-# Funktion für Koordinatensystem (xy-Projektion) mit Vektoren
-def draw_coordinate_system(g1, r1, g2, r2, schnittpunkt=None):
-    width, height = 20, 10
-    grid = [[' ' for _ in range(width)] for _ in range(height)]
+# Funktion für 3D-Koordinatensystem (textbasiert)
+def draw_3d_coordinate_system(g1, r1, g2, r2, schnittpunkt=None):
+    width, height, depth = 20, 10, 10  # x, y, z Dimensionen
+    grid = [[[' ' for _ in range(width)] for _ in range(height)] for _ in range(depth)]
     scale = 2
     
-    # Koordinatenachsen zeichnen
-    center_x, center_y = width // 2, height // 2
+    # Koordinatenachsen zeichnen (vereinfacht)
+    center_x, center_y, center_z = width // 2, height // 2, depth // 2
     for x in range(width):
-        grid[center_y][x] = '-'  # x-Achse
+        grid[center_z][center_y][x] = '-'  # x-Achse
     for y in range(height):
-        grid[y][center_x] = '|'  # y-Achse
-    grid[center_y][center_x] = '+'  # Ursprung
+        grid[center_z][y][center_x] = '|'  # y-Achse
+    for z in range(depth):
+        if grid[z][center_y][center_x] == ' ':
+            grid[z][center_y][center_x] = ':'  # z-Achse
+    grid[center_z][center_y][center_x] = '+'  # Ursprung
     
     # Gerade 1: Stützvektor und Gerade
     g1_x = int(g1[0]) // scale + center_x
     g1_y = int(g1[1]) // scale + center_y
-    if 0 <= g1_x < width and 0 <= g1_y < height:
-        grid[g1_y][g1_x] = 'G'  # Stützvektor g1
+    g1_z = int(g1[2]) // scale + center_z
+    if 0 <= g1_x < width and 0 <= g1_y < height and 0 <= g1_z < depth:
+        grid[g1_z][g1_y][g1_x] = 'G'  # Stützvektor g1
     
     # Gerade 1 zeichnen
     for t in range(-5, 6):
         x = int(g1[0] + t * r1[0]) // scale + center_x
         y = int(g1[1] + t * r1[1]) // scale + center_y
-        if 0 <= x < width and 0 <= y < height and grid[y][x] not in ['+', 'G']:
-            grid[y][x] = '1'
+        z = int(g1[2] + t * r1[2]) // scale + center_z
+        if 0 <= x < width and 0 <= y < height and 0 <= z < depth and grid[z][y][x] not in ['+', 'G']:
+            grid[z][y][x] = '1'
     
     # Gerade 2: Stützvektor und Gerade
     g2_x = int(g2[0]) // scale + center_x
     g2_y = int(g2[1]) // scale + center_y
-    if 0 <= g2_x < width and 0 <= g2_y < height:
-        grid[g2_y][g2_x] = 'H'  # Stützvektor g2
+    g2_z = int(g2[2]) // scale + center_z
+    if 0 <= g2_x < width and 0 <= g2_y < height and 0 <= g2_z < depth:
+        grid[g2_z][g2_y][g2_x] = 'H'  # Stützvektor g2
     
     # Gerade 2 zeichnen
     for s in range(-5, 6):
         x = int(g2[0] + s * r2[0]) // scale + center_x
         y = int(g2[1] + s * r2[1]) // scale + center_y
-        if 0 <= x < width and 0 <= y < height and grid[y][x] not in ['+', 'H']:
-            grid[y][x] = '2'
+        z = int(g2[2] + s * r2[2]) // scale + center_z
+        if 0 <= x < width and 0 <= y < height and 0 <= z < depth and grid[z][y][x] not in ['+', 'H']:
+            grid[z][y][x] = '2'
     
     # Schnittpunkt markieren
     if schnittpunkt:
         x = int(schnittpunkt[0]) // scale + center_x
         y = int(schnittpunkt[1]) // scale + center_y
-        if 0 <= x < width and 0 <= y < height:
-            grid[y][x] = 'X'
+        z = int(schnittpunkt[2]) // scale + center_z
+        if 0 <= x < width and 0 <= y < height and 0 <= z < depth:
+            grid[z][y][x] = 'X'
     
-    # Grid als String formatieren
-    drawing = "\n".join("".join(row) for row in grid)
+    # Grid als String formatieren (Schichtweise Darstellung)
+    drawing = ""
+    for z in range(depth):
+        drawing += f"\nz-Ebene {z - center_z}:\n"
+        drawing += "\n".join("".join(row) for row in grid[z]) + "\n"
     return drawing
 
 # Berechnungen durchführen
@@ -194,14 +205,14 @@ if st.button("Lagebeziehung berechnen"):
             else:
                 st.write("Die Geraden sind echt parallel (kein Schnittpunkt).")
             
-            st.subheader("Koordinatensystem (xy-Projektion)")
+            st.subheader("3D-Koordinatensystem")
             st.write("Legende: G = g1, H = g2, 1 = Gerade 1, 2 = Gerade 2")
-            drawing = draw_coordinate_system(g1, r1, g2, r2)
+            drawing = draw_3d_coordinate_system(g1, r1, g2, r2)
             st.code(drawing)
     else:
         st.write("Die Richtungsvektoren sind keine Vielfachen, also sind die Geraden nicht parallel.")
         
-        # Schritt 3: Schnittpunktprüfung
+        # Schritt 3: Schnittpunktprüfung (vollständig auch für windschief)
         st.subheader("Schritt 3: Gibt es einen Schnittpunkt?")
         st.write("Da die Geraden nicht parallel sind, prüfen wir, ob sie sich schneiden.")
         st.write("Wir setzen die Geradengleichungen gleich:")
@@ -291,20 +302,20 @@ if st.button("Lagebeziehung berechnen"):
                 st.write(f"y = {g1[1]} + {t} * {r1[1]} = {schnittpunkt[1]}")
                 st.write(f"z = {g1[2]} + {t} * {r1[2]} = {schnittpunkt[2]}")
                 st.write(f"Schnittpunkt: {schnittpunkt}")
-                st.subheader("Koordinatensystem (xy-Projektion)")
+                st.subheader("3D-Koordinatensystem")
                 st.write("Legende: G = g1, H = g2, 1 = Gerade 1, 2 = Gerade 2, X = Schnittpunkt")
-                drawing = draw_coordinate_system(g1, r1, g2, r2, schnittpunkt)
+                drawing = draw_3d_coordinate_system(g1, r1, g2, r2, schnittpunkt)
                 st.code(drawing)
             else:
                 st.write("Die dritte Gleichung ist nicht erfüllt → Die Geraden sind windschief.")
-                st.write(f"Ergebnis: Keine Lösung, die Geraden sind windschief.")
-                st.subheader("Koordinatensystem (xy-Projektion)")
+                st.write(f"Ergebnis: Keine konsistente Lösung, die Geraden sind windschief.")
+                st.subheader("3D-Koordinatensystem")
                 st.write("Legende: G = g1, H = g2, 1 = Gerade 1, 2 = Gerade 2")
-                drawing = draw_coordinate_system(g1, r1, g2, r2)
+                drawing = draw_3d_coordinate_system(g1, r1, g2, r2)
                 st.code(drawing)
         else:
             st.write("Keine Lösung für t und s gefunden → Die Geraden sind windschief.")
-            st.subheader("Koordinatensystem (xy-Projektion)")
+            st.subheader("3D-Koordinatensystem")
             st.write("Legende: G = g1, H = g2, 1 = Gerade 1, 2 = Gerade 2")
-            drawing = draw_coordinate_system(g1, r1, g2, r2)
+            drawing = draw_3d_coordinate_system(g1, r1, g2, r2)
             st.code(drawing)
